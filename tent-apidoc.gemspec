@@ -16,4 +16,5 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'tent-client'
   gem.add_runtime_dependency 'tent-server'
+  gem.add_runtime_dependency 'rack-test'
 end
