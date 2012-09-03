@@ -18,7 +18,7 @@ class TentApiDoc
 
     def client
       @client ||= begin
-        adapter = [:tent_rack, TentServer.new(:database => 'postgres://localhost/tent_doc').tap { DataMapper.auto_migrate! }]
+        adapter = [:tent_rack, TentD.new(:database => 'postgres://localhost/tent_doc').tap { DataMapper.auto_migrate! }]
         TentClient.new('https://example.com', :faraday_adapter => adapter)
       end
     end
