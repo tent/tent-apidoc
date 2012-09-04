@@ -17,4 +17,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'tent-client'
   gem.add_runtime_dependency 'tentd'
   gem.add_runtime_dependency 'rack-test'
+  gem.add_runtime_dependency 'fabrication'
+  gem.add_runtime_dependency 'faker'
 end

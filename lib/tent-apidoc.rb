@@ -48,36 +48,35 @@ class TentApiDoc
     end
 
     def request_markdown(env)
-      request = ["#{env[:method].to_s.upcase} #{env[:url].request_uri} HTTP/1.1"]
+      request = "#{env[:method].to_s.upcase} #{env[:url].request_uri} HTTP/1.1\n"
       request += header_string(env[:request_headers])
       fenced_code(request)
     end
 
     def response_head_markdown(response)
-      head = ["HTTP/1.1 #{response.status} #{Rack::Utils::HTTP_STATUS_CODES[response.status]}"]
+      head = "HTTP/1.1 #{response.status} #{Rack::Utils::HTTP_STATUS_CODES[response.status]}\n"
       response.headers.delete('X-Cascade')
       head += header_string(response.headers)
       fenced_code(head)
     end
 
     def body_markdown(body)
-      content = body.respond_to?(:read) ? body.read : body
       return '' if body.nil? || body.empty?
       fenced_code(body)
     end
 
     def header_string(headers)
-      headers.map { |k,v| "#{k}: #{v}" }
+      headers.map { |k,v| "#{k}: #{v}" }.join("\n")
     end
 
-    def fenced_code(lines)
-      lines = Array(lines)
-      language = 'text'
-      if lines.first.match(/\A\s+\{/)
-        language = 'json'
-        lines[0] = JSON.pretty_generate(JSON.parse(lines.first))
+    def fenced_code(code)
+      language = if code.kind_of?(Hash)
+        code = JSON.pretty_generate(code)
+        'json'
+      else
+        'text'
       end
-      lines.unshift("\n```#{language}").push("```\n").join("\n")
+      "\n```#{language}\n#{code}\n```\n"
     end
   end
 end
