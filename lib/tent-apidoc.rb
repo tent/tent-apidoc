@@ -1,6 +1,6 @@
 require 'bundler/setup'
 require 'tent-client'
-require 'tent-server'
+require 'tentd'
 require 'rack/utils'
 
 class TentApiDoc
@@ -16,15 +16,26 @@ class TentApiDoc
   class << self
     attr_accessor :examples
 
-    def client
-      @client ||= begin
+    def clients
+      @clients ||= begin
         adapter = [:tent_rack, TentD.new(:database => 'postgres://localhost/tent_doc').tap { DataMapper.auto_migrate! }]
-        TentClient.new('https://example.com', :faraday_adapter => adapter)
+        app = TentD::Model::App.create
+        app_auth = app.authorizations.create(
+          :scopes => %w{ read_posts write_posts import_posts read_profile write_profile read_followers write_followers read_followings write_followings read_groups write_groups read_permissions write_permissions read_apps write_apps follow_ui read_secrets write_secrets },
+          :profile_info_types => ['all'],
+          :post_types => ['all']
+        )
+        follower = TentD::Model::Follower.create(:entity => 'http://example.org')
+        {
+          :app => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app.auth_details)),
+          :app_auth => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app_auth.auth_details)),
+          :follower => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(follower.auth_details))
+        }
       end
     end
 
     def example(name)
-      (@examples ||= {})[name] = response_to_markdown(yield(client))
+      (@examples ||= {})[name] = response_to_markdown(yield(clients))
     end
 
     private
@@ -61,8 +72,14 @@ class TentApiDoc
 
     def fenced_code(lines)
       lines = Array(lines)
-      language = lines.first.match(/\A\s+\{/) ? 'json' : 'text'
-      Array(lines).unshift("\n```#{language}").push("```\n").join("\n")
+      language = 'text'
+      if lines.first.match(/\A\s+\{/)
+        language = 'json'
+        lines[0] = JSON.pretty_generate(JSON.parse(lines.first))
+      end
+      lines.unshift("\n```#{language}").push("```\n").join("\n")
     end
   end
 end
+
+require 'tent-apidoc/examples'
