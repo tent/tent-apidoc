@@ -19,6 +19,7 @@ class TentApiDoc
     def clients
       @clients ||= begin
         adapter = [:tent_rack, TentD.new(:database => 'postgres://localhost/tent_doc').tap { DataMapper.auto_migrate! }]
+        TentD.faraday_adapter = adapter # tentception
         app = TentD::Model::App.create
         app_auth = app.authorizations.create(
           :scopes => %w{ read_posts write_posts import_posts read_profile write_profile read_followers write_followers read_followings write_followings read_groups write_groups read_permissions write_permissions read_apps write_apps follow_ui read_secrets write_secrets },
@@ -29,7 +30,8 @@ class TentApiDoc
         {
           :app => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app.auth_details)),
           :app_auth => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app_auth.auth_details)),
-          :follower => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(follower.auth_details))
+          :follower => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(follower.auth_details)),
+          :base => TentClient.new('https://example.com', :faraday_adapter => adapter)
         }
       end
     end
@@ -73,6 +75,9 @@ class TentApiDoc
       language = if code.kind_of?(Hash)
         code = JSON.pretty_generate(code)
         'json'
+      elsif code.match(/\A\s*\{/)
+        code = JSON.pretty_generate(JSON.parse(code))
+        'json'
       else
         'text'
       end
@@ -80,5 +85,7 @@ class TentApiDoc
     end
   end
 end
+
+TentApiDoc.clients
 
 require 'tent-apidoc/examples'
