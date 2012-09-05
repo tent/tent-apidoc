@@ -27,6 +27,7 @@ class TentApiDoc
           :post_types => ['all']
         )
         follower = TentD::Model::Follower.create(:entity => 'http://example.org', :licenses => ['http://creativecommons.org/licenses/by/3.0/'])
+        follower.notification_subscriptions.create(:type => 'all')
         {
           :app => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app.auth_details)),
           :app_auth => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app_auth.auth_details)),
