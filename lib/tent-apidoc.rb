@@ -26,7 +26,7 @@ class TentApiDoc
           :profile_info_types => ['all'],
           :post_types => ['all']
         )
-        follower = TentD::Model::Follower.create(:entity => 'http://example.org')
+        follower = TentD::Model::Follower.create(:entity => 'http://example.org', :licenses => ['http://creativecommons.org/licenses/by/3.0/'])
         {
           :app => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app.auth_details)),
           :app_auth => TentClient.new('https://example.com', {:faraday_adapter => adapter}.merge(app_auth.auth_details)),
@@ -72,7 +72,7 @@ class TentApiDoc
     end
 
     def fenced_code(code)
-      language = if code.kind_of?(Hash)
+      language = if code.kind_of?(Hash) || code.kind_of?(Array)
         code = JSON.pretty_generate(code)
         'json'
       elsif code.match(/\A\s*\{/)
