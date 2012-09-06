@@ -20,32 +20,30 @@ class TentApiDoc
                                      :bio => Faker::Lorem.sentence
                                    })
 
-  example(:create_follower) do |clients|
-    clients[:base].follower.create(:entity => 'https://example.org',
-                                   :types => ['https://tent.io/types/post/status/v0.1.0#full'],
-                                   :licenses => ['http://creativecommons.org/licenses/by/3.0/'])
+  example(:create_follower) do
+    clients[:base].follower.create(
+      :entity => 'https://example.org',
+      :types => ['all'],
+      :licenses => ['http://creativecommons.org/licenses/by/3.0/']
+    ).tap {
+      clients[:follower] = TentClient.new('https://example.com', TentD::Model::Follower.last.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
+    }
   end
 
-  example(:get_follower) do |clients|
+  example(:get_follower) do
     clients[:follower].follower.get(TentD::Model::Follower.first.public_id)
   end
 
-  example(:update_follower) do |clients|
+  example(:update_follower) do
     follower = TentD::Model::Follower.first
     clients[:follower].follower.update(follower.public_id, follower.attributes.slice(:entity, :licenses).merge(:types => ['https://tent.io/types/post/essay/v0.1.0#full']))
   end
 
-  example(:delete_follower) do |clients|
-    follower = TentD::Model::Follower.last
-    client = TentClient.new('https://example.com', follower.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
-    client.follower.delete(follower.public_id)
-  end
-
-  example(:get_profile) do |clients|
+  example(:get_profile) do
     clients[:base].profile.get
   end
 
-  example(:create_app) do |clients|
+  example(:create_app) do
     clients[:base].app.create(
       :name => "FooApp",
       :description => "Does amazing foos with your data",
@@ -55,16 +53,26 @@ class TentApiDoc
       :scopes => {
         :write_profile => "Uses an app profile section to describe foos",
         :read_followings => "Calculates foos based on your followings"
-      })
+      }).tap {
+        clients[:app] = TentClient.new('https://example.com', TentD::Model::App.last.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
+      }
   end
 
-  example(:app_auth) do |clients|
+  example(:app_auth) do
     app = TentD::Model::App.first
     auth = app.authorizations.create(
       :scopes => ['read_posts', 'read_profile'],
       :profile_info_types => ['https://tent.io/types/info/music/v0.1.0'],
       :post_types => ['https://tent.io/types/posts/status/v0.1.0', 'https://tent.io/types/posts/photo/v0.2.0']
     )
+    variables[:app_code] = auth.token_code
+    variables[:app_id] = app.public_id
     clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac')
+  end
+
+  example(:delete_follower) do
+    follower = TentD::Model::Follower.last
+    client = TentClient.new('https://example.com', follower.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
+    client.follower.delete(follower.public_id)
   end
 end
