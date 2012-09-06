@@ -44,6 +44,7 @@ class TentApiDoc
     private
 
     def response_to_markdown(response)
+      return unless response
       markdown = request_markdown(response.env)
       markdown += body_markdown(response.env[:request_body])
       markdown += response_head_markdown(response)
