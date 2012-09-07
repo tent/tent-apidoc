@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+bin_file = Pathname.new(__FILE__).realpath
+$:.unshift File.expand_path("../../lib", bin_file)
+
+require 'tent-apidoc'
+require 'yaml'
+
+data = { :examples => TentApiDoc.examples, :variables => TentApiDoc.variables }
+
+File.open(ARGV[0] || 'examples.yaml', 'w') { |f| f.write YAML.dump(data) }
