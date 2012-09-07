@@ -26,7 +26,7 @@ class TentApiDoc
       :types => ['all'],
       :licenses => ['http://creativecommons.org/licenses/by/3.0/']
     ).tap {
-      clients[:follower] = TentClient.new('https://example.com', TentD::Model::Follower.last.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
+      clients[:follower] = TentClient.new('https://example.com', client_options(TentD::Model::Follower.last))
     }
   end
 
@@ -54,25 +54,112 @@ class TentApiDoc
         :write_profile => "Uses an app profile section to describe foos",
         :read_followings => "Calculates foos based on your followings"
       }).tap {
-        clients[:app] = TentClient.new('https://example.com', TentD::Model::App.last.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
+        clients[:app] = TentClient.new('https://example.com', client_options(TentD::Model::App.last))
       }
   end
 
   example(:app_auth) do
     app = TentD::Model::App.first
     auth = app.authorizations.create(
-      :scopes => ['read_posts', 'read_profile'],
-      :profile_info_types => ['https://tent.io/types/info/music/v0.1.0'],
-      :post_types => ['https://tent.io/types/posts/status/v0.1.0', 'https://tent.io/types/posts/photo/v0.2.0']
+      :scopes => %w(read_posts write_posts import_posts read_profile write_profile read_followers write_followers read_followings write_followings read_groups write_groups read_permissions write_permissions read_apps write_apps follow_ui read_secrets write_secrets),
+      :profile_info_types => ['https://tent.io/types/info/basic/v0.1.0'],
+      :post_types => ['https://tent.io/types/post/status/v0.1.0', 'https://tent.io/types/post/photo/v0.1.0']
     )
     variables[:app_code] = auth.token_code
     variables[:app_id] = app.public_id
-    clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac')
+    clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac').tap {
+      clients[:auth] = TentClient.new('https://example.com', client_options(TentD::Model::AppAuthorization.last))
+    }
+  end
+
+  example(:get_app) do
+    clients[:app].app.get(TentD::Model::App.last.public_id)
+  end
+
+  example(:update_app) do
+    clients[:app].app.update(
+      TentD::Model::App.last.public_id,
+      :name => "FooApp",
+      :description => "Does amazing foos with your data",
+      :url => "http://example.com",
+      :icon => "http://example.com/icon.png",
+      :redirect_uris => ["https://app.example.com/tent/callback"],
+      :scopes => {
+        :write_profile => "Uses an app profile section to describe foos",
+        :read_followings => "Calculates foos based on your followings",
+        :write_following => "Follow new users when you click"
+      }
+    )
+  end
+
+  example(:discovery) do
+    clients[:base].http.head('/')
+  end
+
+  example(:update_profile) do
+    clients[:auth].profile.update(
+      'https://tent.io/types/info/basic/v0.1.0',
+      :name => 'The Tentity',
+      :avatar_url => 'http://example.org/avatar.jpg',
+      :birthdate => '2012-08-23',
+      :location => 'The Internet',
+      :gender => 'Unknown',
+      :bio => Faker::Lorem.sentence
+    )
+  end
+
+  example(:create_post) do
+    clients[:auth].post.create(
+      :type => 'https://tent.io/types/post/status/v0.1.0',
+      :published_at => Time.now.to_i,
+      :permissions => { :public => true },
+      :licenses => ['http://creativecommons.org/licenses/by/3.0/'],
+      :content => {
+        :text => "Just landed.",
+        :location => {
+          :type => 'Point',
+          :coordinates => [50.923878, 4.028605]
+        }
+      }
+    )
+  end
+  example(:create_following) do
+    clients[:auth].following.create('https://example.org')
+  end
+
+  example(:get_followings) do
+    clients[:auth].following.list
+  end
+
+  example(:get_following) do
+    clients[:auth].following.get(TentD::Model::Following.last.public_id)
+  end
+
+  example(:delete_following) do
+    clients[:auth].following.delete(TentD::Model::Following.last.public_id)
+  end
+
+  example(:get_followers) do
+    clients[:auth].follower.list
+  end
+
+  example(:get_posts) do
+    clients[:auth].post.list
+  end
+
+  example(:get_post) do
+    clients[:auth].post.get(TentD::Model::Post.last.public_id)
+  end
+
+  example(:follower_get_post) do
+    clients[:follower].post.get(TentD::Model::Post.last.public_id)
+  end
+
+  example(:follower_get_posts) do
+    clients[:follower].post.list
   end
 
   example(:delete_follower) do
-    follower = TentD::Model::Follower.last
-    client = TentClient.new('https://example.com', follower.auth_details.merge(:faraday_adapter => TentD.faraday_adapter))
-    client.follower.delete(follower.public_id)
+    clients[:follower].follower.delete(TentD::Model::Follower.last.public_id)
   end
 end

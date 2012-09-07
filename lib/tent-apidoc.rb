@@ -3,6 +3,8 @@ require 'tent-client'
 require 'tentd'
 require 'rack/utils'
 
+ENV['TENT_ENTITY'] = 'https://example.org'
+
 class TentApiDoc
   class FaradayAdapter < Faraday::Adapter::Rack
     def call(env)
@@ -77,6 +79,10 @@ class TentApiDoc
         'text'
       end
       "\n```#{language}\n#{code}\n```\n"
+    end
+
+    def client_options(authable)
+      authable.auth_details.merge(:faraday_adapter => TentD.faraday_adapter)
     end
   end
 end
