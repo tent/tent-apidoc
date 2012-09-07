@@ -160,6 +160,6 @@ class TentApiDoc
   end
 
   example(:delete_follower) do
-    clients[:follower].follower.delete(TentD::Model::Follower.last.public_id)
+    clients[:follower].follower.delete(TentD::Model::Follower.first.public_id)
   end
 end
