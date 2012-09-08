@@ -123,7 +123,7 @@ class TentApiDoc
           :coordinates => [50.923878, 4.028605]
         }
       }
-    )
+    ).tap { |res| variables[:post_id] = res.body['id'] }
   end
 
   example(:create_post_with_attachments) do
@@ -174,7 +174,7 @@ class TentApiDoc
   end
 
   example(:get_post) do
-    clients[:auth].post.get(TentD::Model::Post.last.public_id)
+    clients[:auth].post.get(variables[:post_id])
   end
 
   example(:follower_get_post) do
