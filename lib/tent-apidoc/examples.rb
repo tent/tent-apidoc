@@ -124,7 +124,7 @@ class TentApiDoc
     )
   end
 
-  example(:create_multipart_post) do
+  example(:create_post_with_attachments) do
     clients[:auth].post.create(
       {
         :type => 'https://tent.io/types/post/photo/v0.1.0',
@@ -136,8 +136,8 @@ class TentApiDoc
         }
       },
       :attachments => [
-        { :category => 'photos', :filename => 'fake_photo1.jpg', :data => 'Photo 1 data would go here', :content_type => 'image/jpeg' },
-        { :category => 'photos', :filename => 'fake_photo2.jpg', :data => 'Photo 2 data would go here', :content_type => 'image/jpeg' },
+        { :category => 'photos', :filename => 'fake_photo1.jpg', :data => 'Photo 1 data would go here', :type => 'image/jpeg' },
+        { :category => 'photos', :filename => 'fake_photo2.jpg', :data => 'Photo 2 data would go here', :type => 'image/jpeg' },
       ]
     )
   end
