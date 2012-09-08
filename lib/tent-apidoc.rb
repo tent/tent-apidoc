@@ -60,7 +60,8 @@ class TentApiDoc
     end
 
     def body_markdown(body)
-      return '' if body.nil? || body.empty?
+      return '' if body.nil? || body.respond_to?(:empty?) && body.empty?
+      body = (body.rewind && body.read) if body.respond_to?(:read)
       fenced_code(body)
     end
 

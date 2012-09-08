@@ -123,6 +123,25 @@ class TentApiDoc
       }
     )
   end
+
+  example(:create_multipart_post) do
+    clients[:auth].post.create(
+      {
+        :type => 'https://tent.io/types/post/photo/v0.1.0',
+        :published_at => Time.now.to_i,
+        :permissions => { :public => true },
+        :licenses => ['http://creativecommons.org/licenses/by/3.0/'],
+        :content => {
+          :caption => 'Some fake photos'
+        }
+      },
+      :attachments => [
+        { :category => 'photos', :filename => 'fake_photo1.jpg', :data => 'Photo 1 data would go here', :content_type => 'image/jpeg' },
+        { :category => 'photos', :filename => 'fake_photo2.jpg', :data => 'Photo 2 data would go here', :content_type => 'image/jpeg' },
+      ]
+    )
+  end
+
   example(:create_following) do
     clients[:auth].following.create('https://example.org')
   end
