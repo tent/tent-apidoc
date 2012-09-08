@@ -2,14 +2,16 @@ require 'faker'
 require 'fabrication'
 
 class TentApiDoc
-  TentD::Model::ProfileInfo.create(:type => TentD::Model::ProfileInfo::TENT_PROFILE_TYPE_URI,
+  TentD::Model::ProfileInfo.create(:type => 'https://tent.io/types/info/core',
+                                   :type_version => '0.1.0',
                                    :public => true,
                                    :content => {
                                      :licenses => ['http://creativecommons.org/licenses/by/3.0/'],
                                      :entity => 'https://example.org',
                                      :servers => ['https://tent.example.org', 'http://eqt5g4fuenphqinx.onion/']
                                    })
-  TentD::Model::ProfileInfo.create(:type => 'https://tent.io/types/info/basic/v0.1.0',
+  TentD::Model::ProfileInfo.create(:type => 'https://tent.io/types/info/basic',
+                                   :type_version => '0.1.0',
                                    :public => true,
                                    :content => {
                                      :name => 'The Tentity',
@@ -140,6 +142,11 @@ class TentApiDoc
         { :category => 'photos', :filename => 'fake_photo2.jpg', :data => 'Photo 2 data would go here', :type => 'image/jpeg' },
       ]
     )
+  end
+
+  example(:get_post_attachment) do
+    attachment = TentD::Model::PostAttachment.last
+    clients[:auth].post.attachment.get(attachment.post.public_id, attachment.name, attachment.type)
   end
 
   example(:create_following) do
