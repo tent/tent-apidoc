@@ -2,7 +2,7 @@ require 'faker'
 require 'fabrication'
 
 class TentApiDoc
-  TentD::Model::ProfileInfo.create(:type => 'https://tent.io/types/info/core',
+  TentD::Model::ProfileInfo.create(:type_base => 'https://tent.io/types/info/core',
                                    :type_version => '0.1.0',
                                    :public => true,
                                    :content => {
@@ -10,7 +10,7 @@ class TentApiDoc
                                      :entity => 'https://example.org',
                                      :servers => ['https://tent.example.org', 'http://eqt5g4fuenphqinx.onion/']
                                    })
-  TentD::Model::ProfileInfo.create(:type => 'https://tent.io/types/info/basic',
+  TentD::Model::ProfileInfo.create(:type_base => 'https://tent.io/types/info/basic',
                                    :type_version => '0.1.0',
                                    :public => true,
                                    :content => {
