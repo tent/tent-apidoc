@@ -2,44 +2,36 @@ require 'faker'
 require 'fabrication'
 
 class TentApiDoc
-  TentD::Model::ProfileInfo.create(:type_base => 'https://tent.io/types/info/core',
-                                   :type_version => '0.1.0',
-                                   :public => true,
-                                   :content => {
-                                     :licenses => ['http://creativecommons.org/licenses/by/3.0/'],
-                                     :entity => 'https://example.org',
-                                     :servers => ['https://tent.example.org', 'http://eqt5g4fuenphqinx.onion/']
-                                   })
-  TentD::Model::ProfileInfo.create(:type_base => 'https://tent.io/types/info/basic',
-                                   :type_version => '0.1.0',
-                                   :public => true,
-                                   :content => {
-                                     :name => 'The Tentity',
-                                     :avatar_url => 'http://example.org/avatar.jpg',
-                                     :birthdate => '2012-08-23',
-                                     :location => 'The Internet',
-                                     :gender => 'Unknown',
-                                     :bio => Faker::Lorem.sentence
-                                   })
+  include TentD::Model
 
-  example(:create_follower) do
-    clients[:base].follower.create(
-      :entity => 'https://example.org',
-      :types => ['all'],
-      :licenses => ['http://creativecommons.org/licenses/by/3.0/']
-    ).tap {
-      clients[:follower] = TentClient.new('https://example.com', client_options(TentD::Model::Follower.last))
-    }
+  User.current = User.create
+
+  # hack so tentception works
+  class TentD::Model::User
+    def profile_entity
+      nil
+    end
   end
 
-  example(:get_follower) do
-    clients[:follower].follower.get(TentD::Model::Follower.first.public_id)
-  end
-
-  example(:update_follower) do
-    follower = TentD::Model::Follower.first
-    clients[:follower].follower.update(follower.public_id, follower.attributes.slice(:entity, :licenses).merge(:types => ['https://tent.io/types/post/essay/v0.1.0#full']))
-  end
+  ProfileInfo.create(:type_base => 'https://tent.io/types/info/core',
+                     :type_version => '0.1.0',
+                     :public => true,
+                     :content => {
+                       :licenses => ['http://creativecommons.org/licenses/by/3.0/'],
+                       :entity => 'https://example.org',
+                       :servers => ['https://tent.example.com', 'http://eqt5g4fuenphqinx.onion/']
+                     })
+  ProfileInfo.create(:type_base => 'https://tent.io/types/info/basic',
+                     :type_version => '0.1.0',
+                     :public => true,
+                     :content => {
+                       :name => 'The Tentity',
+                       :avatar_url => 'http://example.org/avatar.jpg',
+                       :birthdate => '2012-08-23',
+                       :location => 'The Internet',
+                       :gender => 'Unknown',
+                       :bio => Faker::Lorem.sentence
+                     })
 
   example(:get_profile) do
     clients[:base].profile.get
@@ -56,12 +48,12 @@ class TentApiDoc
         :write_profile => "Uses an app profile section to describe foos",
         :read_followings => "Calculates foos based on your followings"
       }).tap {
-        clients[:app] = TentClient.new('https://example.com', client_options(TentD::Model::App.last))
+        clients[:app] = TentClient.new('https://example.com', client_options(App.last))
       }
   end
 
   example(:app_auth) do
-    app = TentD::Model::App.first
+    app = App.first
     auth = app.authorizations.create(
       :scopes => %w(read_posts write_posts import_posts read_profile write_profile read_followers write_followers read_followings write_followings read_groups write_groups read_permissions write_permissions read_apps write_apps follow_ui read_secrets write_secrets),
       :profile_info_types => ['https://tent.io/types/info/basic/v0.1.0'],
@@ -70,17 +62,42 @@ class TentApiDoc
     variables[:app_code] = auth.token_code
     variables[:app_id] = app.public_id
     clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac').tap {
-      clients[:auth] = TentClient.new('https://example.com', client_options(TentD::Model::AppAuthorization.last))
+      clients[:auth] = TentClient.new('https://example.com', client_options(AppAuthorization.last))
     }
   end
 
+  example(:create_following) do
+    clients[:auth].following.create('https://example.org')
+  end
+
+  example(:create_follower) do
+    clients[:base].follower.create(
+      :entity => 'https://example.org',
+      :types => ['all'],
+      :notification_path => "notifications/#{Following.last.public_id}",
+      :licenses => ['http://creativecommons.org/licenses/by/3.0/']
+    ).tap { |res|
+      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.last))
+      variables[:follower_id] = res.body['id']
+    }
+  end
+
+  example(:get_follower) do
+    clients[:follower].follower.get(variables[:follower_id])
+  end
+
+  example(:update_follower) do
+    follower = Follower.first(:public_id => variables[:follower_id])
+    clients[:follower].follower.update(follower.public_id, follower.attributes.slice(:entity, :licenses).merge(:types => ['https://tent.io/types/post/essay/v0.1.0#full']))
+  end
+
   example(:get_app) do
-    clients[:app].app.get(TentD::Model::App.last.public_id)
+    clients[:app].app.get(App.last.public_id)
   end
 
   example(:update_app) do
     clients[:app].app.update(
-      TentD::Model::App.last.public_id,
+      App.last.public_id,
       :name => "FooApp",
       :description => "Does amazing foos with your data",
       :url => "http://example.com",
@@ -145,12 +162,8 @@ class TentApiDoc
   end
 
   example(:get_post_attachment) do
-    attachment = TentD::Model::PostAttachment.last
+    attachment = PostAttachment.last
     clients[:auth].post.attachment.get(attachment.post.public_id, attachment.name, attachment.type)
-  end
-
-  example(:create_following) do
-    clients[:auth].following.create('https://example.org')
   end
 
   example(:get_followings) do
@@ -158,11 +171,11 @@ class TentApiDoc
   end
 
   example(:get_following) do
-    clients[:auth].following.get(TentD::Model::Following.last.public_id)
+    clients[:auth].following.get(Following.last.public_id)
   end
 
   example(:delete_following) do
-    clients[:auth].following.delete(TentD::Model::Following.last.public_id)
+    clients[:auth].following.delete(Following.last.public_id)
   end
 
   example(:get_followers) do
@@ -178,7 +191,7 @@ class TentApiDoc
   end
 
   example(:follower_get_post) do
-    clients[:follower].post.get(TentD::Model::Post.last.public_id)
+    clients[:follower].post.get(variables[:post_id])
   end
 
   example(:follower_get_posts) do
@@ -186,6 +199,6 @@ class TentApiDoc
   end
 
   example(:delete_follower) do
-    clients[:follower].follower.delete(TentD::Model::Follower.first.public_id)
+    clients[:follower].follower.delete(variables[:follower_id])
   end
 end
