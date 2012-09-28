@@ -66,31 +66,6 @@ class TentApiDoc
     }
   end
 
-  example(:create_following) do
-    clients[:auth].following.create('https://example.org')
-  end
-
-  example(:create_follower) do
-    clients[:base].follower.create(
-      :entity => 'https://example.org',
-      :types => ['all'],
-      :notification_path => "notifications/#{Following.last.public_id}",
-      :licenses => ['http://creativecommons.org/licenses/by/3.0/']
-    ).tap { |res|
-      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.last))
-      variables[:follower_id] = res.body['id']
-    }
-  end
-
-  example(:get_follower) do
-    clients[:follower].follower.get(variables[:follower_id])
-  end
-
-  example(:update_follower) do
-    follower = Follower.first(:public_id => variables[:follower_id])
-    clients[:follower].follower.update(follower.public_id, follower.attributes.slice(:entity, :licenses).merge(:types => ['https://tent.io/types/post/essay/v0.1.0#full']))
-  end
-
   example(:get_app) do
     clients[:app].app.get(App.last.public_id)
   end
@@ -166,6 +141,10 @@ class TentApiDoc
     clients[:auth].post.attachment.get(attachment.post.public_id, attachment.name, attachment.type)
   end
 
+  example(:create_following) do
+    clients[:auth].following.create('https://example.org')
+  end
+
   example(:get_followings) do
     clients[:auth].following.list
   end
@@ -174,9 +153,31 @@ class TentApiDoc
     clients[:auth].following.get(Following.last.public_id)
   end
 
+  example(:create_follower) do
+    clients[:base].follower.create(
+      :entity => 'https://example.org',
+      :types => ['all'],
+      :notification_path => "notifications/#{Following.last.public_id}",
+      :licenses => ['http://creativecommons.org/licenses/by/3.0/']
+    ).tap { |res|
+      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.last))
+      variables[:follower_id] = res.body['id']
+    }
+  end
+
   example(:delete_following) do
     clients[:auth].following.delete(Following.last.public_id)
   end
+
+  example(:get_follower) do
+    clients[:follower].follower.get(variables[:follower_id])
+  end
+
+  example(:update_follower) do
+    follower = Follower.first(:public_id => variables[:follower_id])
+    clients[:follower].follower.update(follower.public_id, follower.attributes.slice(:entity, :licenses).merge(:types => ['https://tent.io/types/post/essay/v0.1.0#full']))
+  end
+
 
   example(:get_followers) do
     clients[:auth].follower.list
