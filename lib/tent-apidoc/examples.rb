@@ -76,12 +76,11 @@ class TentApiDoc
       :name => "FooApp",
       :description => "Does amazing foos with your data",
       :url => "http://example.com",
-      :icon => "http://example.com/icon.png",
+      :icon => "http://example.org/icon.png",
       :redirect_uris => ["https://app.example.com/tent/callback"],
       :scopes => {
         :write_profile => "Uses an app profile section to describe foos",
         :read_followings => "Calculates foos based on your followings",
-        :write_following => "Follow new users when you click"
       }
     )
   end
