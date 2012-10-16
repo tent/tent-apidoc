@@ -168,6 +168,10 @@ class TentApiDoc
     clients[:auth].following.delete(Following.last.public_id)
   end
 
+  example(:auth_get_follower) do
+    clients[:auth].follower.get(variables[:follower_id])
+  end
+
   example(:get_follower) do
     clients[:follower].follower.get(variables[:follower_id])
   end
