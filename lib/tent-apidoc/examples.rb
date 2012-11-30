@@ -102,6 +102,10 @@ class TentApiDoc
     )
   end
 
+  example(:get_profile_type) do
+    clients[:auth].profile.type.get('https://tent.io/types/info/basic/v0.1.0', :version => 1)
+  end
+
   example(:create_post) do
     clients[:auth].post.create(
       :type => 'https://tent.io/types/post/status/v0.1.0',
@@ -116,6 +120,22 @@ class TentApiDoc
         }
       }
     ).tap { |res| variables[:post_id] = res.body['id'] }
+  end
+
+  example(:get_post_mentions) do
+    mentioned_post = Post.create(
+      :entity => 'https://example.org',
+      :original => false,
+      :type => 'https://tent.io/types/post/status/v0.1.0',
+      :public => true,
+      :content => {}
+    )
+    Mention.create(
+      :post_id => Post.select(:id).first(:public_id => variables[:post_id]).id,
+      :entity => 'https://example.org',
+      :mentioned_post_id => mentioned_post.public_id
+    )
+    clients[:auth].post.mention.list(variables[:post_id])
   end
 
   example(:create_post_with_attachments) do
@@ -139,22 +159,6 @@ class TentApiDoc
   example(:get_post_attachment) do
     attachment = PostAttachment.order(:id.desc).first
     clients[:auth].post.attachment.get(attachment.post.public_id, attachment.name, attachment.type)
-  end
-
-  example(:get_post_mentions) do
-    mentioned_post = Post.create(
-      :entity => 'https://example.org',
-      :original => false,
-      :type => 'https://tent.io/types/post/status/v0.1.0',
-      :public => true,
-      :content => {}
-    )
-    Mention.create(
-      :post_id => Post.select(:id).first(:public_id => variables[:post_id]).id,
-      :entity => 'https://example.org',
-      :mentioned_post_id => mentioned_post.public_id
-    )
-    clients[:auth].post.mention.list(variables[:post_id])
   end
 
   example(:create_following) do
