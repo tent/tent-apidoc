@@ -141,6 +141,22 @@ class TentApiDoc
     clients[:auth].post.attachment.get(attachment.post.public_id, attachment.name, attachment.type)
   end
 
+  example(:get_post_mentions) do
+    mentioned_post = Post.create(
+      :entity => 'https://example.org',
+      :original => false,
+      :type => 'https://tent.io/types/post/status/v0.1.0',
+      :public => true,
+      :content => {}
+    )
+    Mention.create(
+      :post_id => Post.select(:id).first(:public_id => variables[:post_id]).id,
+      :entity => 'https://example.org',
+      :mentioned_post_id => mentioned_post.public_id
+    )
+    clients[:auth].post.mention.list(variables[:post_id])
+  end
+
   example(:create_following) do
     clients[:auth].following.create('https://example.org')
   end
@@ -154,7 +170,7 @@ class TentApiDoc
   end
 
   example(:create_follower) do
-    res = clients[:base].follower.create(
+    clients[:base].follower.create(
       :entity => 'https://example.org',
       :types => ['all'],
       :notification_path => "notifications/#{Following.order(:id.desc).first.public_id}",
@@ -163,8 +179,6 @@ class TentApiDoc
       clients[:follower] = TentClient.new('https://example.com', client_options(Follower.order(:id.desc).first))
       variables[:follower_id] = res.body['id']
     }
-    p [res.status, res.headers, res.body]
-    res
   end
 
   example(:delete_following) do
@@ -183,7 +197,6 @@ class TentApiDoc
     follower = Follower.first(:public_id => variables[:follower_id])
     clients[:follower].follower.update(follower.public_id, follower.attributes.slice(:entity, :licenses).merge(:types => ['https://tent.io/types/post/essay/v0.1.0#full']))
   end
-
 
   example(:get_followers) do
     clients[:auth].follower.list
