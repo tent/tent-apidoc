@@ -185,6 +185,15 @@ class TentApiDoc
     }
   end
 
+  example(:reset_follower) do
+    clients[:base].follower.create(
+      :entity => 'https://example.org',
+      :types => ['all'],
+      :notification_path => "notifications/#{Following.order(:id.desc).first.public_id}",
+      :licenses => ['http://creativecommons.org/licenses/by/3.0/']
+    )
+  end
+
   example(:delete_following) do
     clients[:auth].following.delete(Following.order(:id.desc).first.public_id)
   end
