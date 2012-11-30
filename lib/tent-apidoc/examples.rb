@@ -62,7 +62,7 @@ class TentApiDoc
     )
     variables[:app_code] = auth.token_code
     variables[:app_id] = app.public_id
-    clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac').tap {
+    clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac', :tent_expires_at => Time.now.to_i + 86400).tap {
       clients[:auth] = TentClient.new('https://example.com', client_options(auth.reload))
     }
   end
