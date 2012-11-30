@@ -86,6 +86,28 @@ class TentApiDoc
     )
   end
 
+  example(:create_group) do
+    clients[:auth].group.create(:name => Faker::Lorem.word).tap { |res|
+      variables[:group_id] = res.body['id']
+    }
+  end
+
+  example(:get_groups) do
+    clients[:auth].group.list
+  end
+
+  example(:update_group) do
+    clients[:auth].group.update(variables[:group_id], :name => Faker::Lorem.word)
+  end
+
+  example(:get_group) do
+    clients[:auth].group.get(variables[:group_id])
+  end
+
+  example(:delete_group) do
+    clients[:auth].group.delete(variables[:group_id])
+  end
+
   example(:discovery) do
     clients[:base].http.head('/')
   end
