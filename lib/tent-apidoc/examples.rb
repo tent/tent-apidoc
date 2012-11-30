@@ -173,6 +173,10 @@ class TentApiDoc
     clients[:auth].following.get(Following.order(:id.desc).first.public_id)
   end
 
+  example(:get_following_entity_redirect) do
+    clients[:auth].following.get(Following.order(:id.desc).first.entity)
+  end
+
   example(:create_follower) do
     clients[:base].follower.create(
       :entity => 'https://example.org',
