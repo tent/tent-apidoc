@@ -4,6 +4,11 @@ require 'tentd'
 require 'rack/utils'
 
 ENV['TENT_ENTITY'] = 'https://example.org'
+ENV['DATABASE_URL'] ||= 'postgres://localhost/tent_doc'
+
+
+db_name = ENV['DATABASE_URL'].split('/').last
+%x{dropdb #{db_name}; createdb #{db_name} && bundle exec sequel -m `bundle show tentd`/db/migrations #{ENV['DATABASE_URL']}}
 
 class TentApiDoc
   class FaradayAdapter < Faraday::Adapter::Rack
@@ -20,7 +25,7 @@ class TentApiDoc
 
     def clients
       @clients ||= begin
-        adapter = [:tent_rack, TentD.new(:database => 'postgres://localhost/tent_doc').tap { DataMapper.auto_migrate! }]
+        adapter = [:tent_rack, TentD.new(:database => ENV['DATABASE_URL'])]
         TentD.faraday_adapter = adapter # tentception
         {
           :base => TentClient.new('https://example.com', :faraday_adapter => adapter)

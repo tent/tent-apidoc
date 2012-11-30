@@ -48,13 +48,14 @@ class TentApiDoc
         :write_profile => "Uses an app profile section to describe foos",
         :read_followings => "Calculates foos based on your followings"
       }).tap {
-        clients[:app] = TentClient.new('https://example.com', client_options(App.last))
+        clients[:app] = TentClient.new('https://example.com', client_options(App.order(:id.desc).first))
       }
   end
 
   example(:app_auth) do
     app = App.first
-    auth = app.authorizations.create(
+    auth = AppAuthorization.create(
+      :app_id => app.id,
       :scopes => %w(read_posts write_posts import_posts read_profile write_profile read_followers write_followers read_followings write_followings read_groups write_groups read_permissions write_permissions read_apps write_apps follow_ui read_secrets write_secrets),
       :profile_info_types => ['https://tent.io/types/info/basic/v0.1.0'],
       :post_types => ['https://tent.io/types/post/status/v0.1.0', 'https://tent.io/types/post/photo/v0.1.0']
@@ -62,17 +63,17 @@ class TentApiDoc
     variables[:app_code] = auth.token_code
     variables[:app_id] = app.public_id
     clients[:app].app.authorization.create(app.public_id, :code => auth.token_code, :token_type => 'mac').tap {
-      clients[:auth] = TentClient.new('https://example.com', client_options(AppAuthorization.last))
+      clients[:auth] = TentClient.new('https://example.com', client_options(auth.reload))
     }
   end
 
   example(:get_app) do
-    clients[:app].app.get(App.last.public_id)
+    clients[:app].app.get(App.order(:id.desc).first.public_id)
   end
 
   example(:update_app) do
     clients[:app].app.update(
-      App.last.public_id,
+      App.order(:id.desc).first.public_id,
       :name => "FooApp",
       :description => "Does amazing foos with your data",
       :url => "http://example.com",
@@ -136,7 +137,7 @@ class TentApiDoc
   end
 
   example(:get_post_attachment) do
-    attachment = PostAttachment.last
+    attachment = PostAttachment.order(:id.desc).first
     clients[:auth].post.attachment.get(attachment.post.public_id, attachment.name, attachment.type)
   end
 
@@ -149,23 +150,25 @@ class TentApiDoc
   end
 
   example(:get_following) do
-    clients[:auth].following.get(Following.last.public_id)
+    clients[:auth].following.get(Following.order(:id.desc).first.public_id)
   end
 
   example(:create_follower) do
-    clients[:base].follower.create(
+    res = clients[:base].follower.create(
       :entity => 'https://example.org',
       :types => ['all'],
-      :notification_path => "notifications/#{Following.last.public_id}",
+      :notification_path => "notifications/#{Following.order(:id.desc).first.public_id}",
       :licenses => ['http://creativecommons.org/licenses/by/3.0/']
     ).tap { |res|
-      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.last))
+      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.order(:id.desc).first))
       variables[:follower_id] = res.body['id']
     }
+    p [res.status, res.headers, res.body]
+    res
   end
 
   example(:delete_following) do
-    clients[:auth].following.delete(Following.last.public_id)
+    clients[:auth].following.delete(Following.order(:id.desc).first.public_id)
   end
 
   example(:auth_get_follower) do
