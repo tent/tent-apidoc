@@ -206,8 +206,8 @@ class TentApiDoc
       :notification_path => "notifications/#{Following.order(:id.desc).first.public_id}",
       :licenses => ['http://creativecommons.org/licenses/by/3.0/']
     ).tap { |res|
-      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.order(:id.desc).first))
       variables[:follower_id] = res.body['id']
+      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.first(:public_id => variables[:follower_id])))
     }
   end
 
@@ -217,7 +217,10 @@ class TentApiDoc
       :types => ['all'],
       :notification_path => "notifications/#{Following.order(:id.desc).first.public_id}",
       :licenses => ['http://creativecommons.org/licenses/by/3.0/']
-    )
+    ).tap { |res|
+      variables[:follower_id] = res.body['id']
+      clients[:follower] = TentClient.new('https://example.com', client_options(Follower.first(:public_id => variables[:follower_id])))
+    }
   end
 
   example(:delete_following) do
