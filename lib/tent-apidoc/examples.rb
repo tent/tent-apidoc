@@ -271,4 +271,8 @@ class TentApiDoc
   example(:delete_follower) do
     clients[:follower].follower.delete(variables[:follower_id])
   end
+
+  example(:delete_app) do
+    clients[:auth].app.delete(variables[:app_id])
+  end
 end
