@@ -206,6 +206,10 @@ class TentApiDoc
     clients[:auth].follower.get(variables[:follower_id])
   end
 
+  example(:get_follower_entity_redirect) do
+    clients[:auth].follower.get(Follower.select(:entity).first(:public_id => variables[:follower_id]).entity)
+  end
+
   example(:get_follower) do
     clients[:follower].follower.get(variables[:follower_id])
   end
