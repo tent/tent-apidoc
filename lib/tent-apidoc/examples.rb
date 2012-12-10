@@ -145,17 +145,20 @@ class TentApiDoc
   end
 
   example(:get_post_mentions) do
-    mentioned_post = Post.create(
-      :entity => 'https://example.org',
+    mentioned_post = Post.select(:public_id, :entity, :user_id).first(:public_id => variables[:post_id])
+    post = Post.create(
+      :entity => 'https://entity.example.org',
       :original => false,
       :type => 'https://tent.io/types/post/status/v0.1.0',
       :public => true,
-      :content => {}
+      :content => {},
+      :user_id => mentioned_post.user_id
     )
-    Mention.create(
-      :post_id => Post.select(:id).first(:public_id => variables[:post_id]).id,
-      :entity => 'https://example.org',
-      :mentioned_post_id => mentioned_post.public_id
+    mention = Mention.create(
+      :post_id => post.id,
+      :entity => mentioned_post.entity,
+      :mentioned_post_id => mentioned_post.public_id,
+      :original_post => true
     )
     clients[:auth].post.mention.list(variables[:post_id])
   end
