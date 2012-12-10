@@ -267,6 +267,21 @@ class TentApiDoc
     clients[:follower].post.list
   end
 
+  example(:update_post) do
+    clients[:auth].post.update(variables[:post_id],
+      :type => 'https://tent.io/types/post/status/v0.1.0',
+      :permissions => { :public => true },
+      :licenses => ['http://creativecommons.org/licenses/by/3.0/'],
+      :content => {
+        :text => "Just landed in Belgium.",
+        :location => {
+          :type => 'Point',
+          :coordinates => [50.923878, 4.028605]
+        }
+      }
+    )
+  end
+
   example(:delete_post_version) do
     clients[:auth].post.delete(variables[:post_id], { :version => 1 })
   end
