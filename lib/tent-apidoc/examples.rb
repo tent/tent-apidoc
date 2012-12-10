@@ -128,6 +128,10 @@ class TentApiDoc
     clients[:auth].profile.type.get('https://tent.io/types/info/basic/v0.1.0', :version => 1)
   end
 
+  example(:delete_profile_type) do
+    clients[:auth].profile.type.delete('https://tent.io/types/info/basic/v0.1.0', :version => 1)
+  end
+
   example(:create_post) do
     clients[:auth].post.create(
       :type => 'https://tent.io/types/post/status/v0.1.0',
