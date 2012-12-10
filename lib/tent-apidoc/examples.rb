@@ -249,7 +249,7 @@ class TentApiDoc
   end
 
   example(:get_posts) do
-    clients[:auth].post.list
+    clients[:auth].post.list(:limit => 4)
   end
 
   example(:get_post) do
