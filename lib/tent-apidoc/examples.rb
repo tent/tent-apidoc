@@ -267,6 +267,10 @@ class TentApiDoc
     clients[:follower].post.list
   end
 
+  example(:delete_post_version) do
+    clients[:auth].post.delete(variables[:post_id], { :version => 1 })
+  end
+
   example(:delete_post) do
     clients[:auth].post.delete(variables[:post_id])
   end
